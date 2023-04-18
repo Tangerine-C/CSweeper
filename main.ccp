@@ -94,7 +94,8 @@ void lose(stats tracker) {
 }
 void win(stats tracker){
     string a;
-    cout<<"MINES CLEARED! YOU WIN!\nIf you want to play again please rerun the code.\n\nPress Anything To Terminate Code.";
+    cout<<"MINES CLEARED! YOU WIN!\nYour Stats:\nTotal Turns: "<<tracker.Turns<<"\nOpened Tiles: "<<tracker.Opens<<"\nMarked Tiles: "<<tracker.Marks;
+    cout<<"\n\nIf you want to play again please rerun the code.\n\nPress Anything To Terminate Code.";
     cin.ignore();
     exit(0);
 
@@ -110,6 +111,7 @@ void resume(int grid[][30],int hidden[][30],string shown[][31],int x, int y,stri
         tracker.Marks++;
     }
     if(grid[y][x]==99&&hidden[y][x]==1){ //LOSE CHECK
+        view(shown,limit1,limit2,diff);
         lose(tracker);
     }
     for (a = 0; a < limit1 + 1; a++) {
@@ -121,16 +123,19 @@ void resume(int grid[][30],int hidden[][30],string shown[][31],int x, int y,stri
     }
     if(diff==1){
         if(w==54){
+            view(shown,limit1,limit2,diff);
             win(tracker); //REQUIRES ALL TILES TO BE OPENED, EXCLUDING MINES. (8x8 = 64; 64 - 10 = 54)
         }
     }
     else if(diff==2){
         if(w==216){
+            view(shown,limit1,limit2,diff);
             win(tracker); //REQUIRES ALL TILES TO BE OPENED, EXCLUDING MINES. (16x16 = 256; 256 - 40 = 216)
         }
     }
     else if(diff==3){
         if(w==381){
+            view(shown,limit1,limit2,diff);
             win(tracker); //REQUIRES ALL TILES TO BE OPENED, EXCLUDING MINES. (30x16 = 480; 480 - 99 = 381)
         }
     }
@@ -186,7 +191,7 @@ void resume(int grid[][30],int hidden[][30],string shown[][31],int x, int y,stri
                 else{
                     y--; //To match the tile on array
                     z=0;
-                    if(hidden[y][x]==2){
+                    if(hidden[y][x]==2&&state=="[OPEN]"){
                         cout<<"You cannot open a marked tile.";
                     }
                     else{
