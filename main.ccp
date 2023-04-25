@@ -9,17 +9,28 @@ using namespace std;
 
 class stats{
 public:
-    int Scan = 0; //Used loosely to track the amount of repeats.
-    int Turns = 0;
+    int Scan = 0; //Used loosely to track the amount of repeats. Barely Works :(
+    float Turns = 0;
     int Opens = 0;
     int Marks = 0;
+    int Score = 0;
+    int ScoreOpen = 0;
+    int ScoreMark = 0;
+    int FalseMark = 0;
+    int NoMark = 1; //Special Win Condition: Winning a game without using [MARK].
+    int NoMineLeftBehind = 0; //Special Win Condition: Winning a game with ALL mines marked by [MARK].
+    int RiskyOpen = 0; //Special Open Condition: Opening a tile that has no hints to where mines are.
+    int LuckyNumber = 0; //Special Open Condition: Open a tile containing an 8. (Extremely Unlikely)
+    float MultiTotal = 0;
+    float AvgMulti = 0;
+    int Completion = 0;
 };
 
 void view(string shown[][31],int limit1,int limit2,int diff){
     int a,b;
     for (a = 0; a < limit1+2; a++) {
         for (b = 0; b < limit2+2; b++) {
-            if(diff==1||diff==2){
+            if(diff==1){
                 if (a == 0 && b == 0) {
                     cout << "\nCurrent Grid:\n";
                 }
@@ -38,6 +49,9 @@ void view(string shown[][31],int limit1,int limit2,int diff){
                     }
 
                 }
+                if(a <= 9 && b == 0){
+                    cout<< " ";
+                }
                 if (a != 0 && b >= 10) {
                     cout << " "; //Makes the ? align with the coord numbers
                 }
@@ -47,7 +61,7 @@ void view(string shown[][31],int limit1,int limit2,int diff){
                     cout << "|\n";
                 }
             }
-            if(diff==3){ //POSSIBLE FIX FOR JANK
+            if(diff==3||diff==2){ //POSSIBLE FIX FOR JANK
                 if (a == 0 && b == 0) {
                     cout << "Current Grid:\n";
                 }
@@ -87,66 +101,162 @@ void view(string shown[][31],int limit1,int limit2,int diff){
 }
 void lose(stats tracker) {
     string a;
-    cout << "MINE TRIPPED! YOU LOSE!\nYour Stats:\nTotal Turns: "<<tracker.Turns<<"\nOpened Tiles: "<<tracker.Opens<<"\nMarked Tiles: "<<tracker.Marks;
-    cout<<"\n\nIf you want to play again please rerun the code.\n\nPress Anything To Terminate Code.";
+    tracker.AvgMulti = tracker.MultiTotal / tracker.Turns;
+    cout<<endl<<"_______________________________________________________________________________________________________\n";
+    tracker.Score = tracker.ScoreOpen + tracker.ScoreMark + tracker.FalseMark + tracker.RiskyOpen + tracker.LuckyNumber + tracker.NoMark + tracker.NoMineLeftBehind + tracker.Completion;
+    cout<<"MINE TRIPPED! YOU LOSE!\nYour Stats:\nTotal Turns: "<<tracker.Turns<<"\nOpened Tiles: "<<tracker.Opens<<"\nMarked Tiles: "<<tracker.Marks<<"\n\n\t    |Score|"<<
+        "\n   Opened Tiles: \t+ "<<tracker.ScoreOpen<<"\n   Marked Mines: \t+ "<<tracker.ScoreMark<<"\n   False Marks: \t- "<<abs(tracker.FalseMark)<<"\n   Risky Tiles: \t+ "<<tracker.RiskyOpen<<
+        "\n   Lucky Number: \t+ "<<tracker.LuckyNumber<<"\n   No [MARK]: \t\t+ "<<tracker.NoMark<<"\n   NMLB: \t\t+ "<<tracker.NoMineLeftBehind<<"\n   Win: \t\t+ "<<tracker.Completion<<
+        "\n   Total Score:\t\t  "<<tracker.Score<<"\n   Average Multiplier:\t x"<<tracker.AvgMulti;
+    cout<<"\n\nTerminating Code.";
     cin.ignore();
     exit(0);
 }
 void win(stats tracker){
     string a;
-    cout<<"MINES CLEARED! YOU WIN!\nYour Stats:\nTotal Turns: "<<tracker.Turns<<"\nOpened Tiles: "<<tracker.Opens<<"\nMarked Tiles: "<<tracker.Marks;
-    cout<<"\n\nIf you want to play again please rerun the code.\n\nPress Anything To Terminate Code.";
+    tracker.AvgMulti = tracker.MultiTotal / tracker.Turns;
+    cout<<endl<<"_______________________________________________________________________________________________________\n";
+    tracker.Score = tracker.ScoreOpen + tracker.ScoreMark + tracker.FalseMark + tracker.RiskyOpen + tracker.LuckyNumber + tracker.NoMark + tracker.NoMineLeftBehind + tracker.Completion;
+    cout<<"MINES CLEARED! YOU WIN!\nYour Stats:\nTotal Turns: "<<tracker.Turns<<"\nOpened Tiles: "<<tracker.Opens<<"\nMarked Tiles: "<<tracker.Marks<<"\n\n\t    |Score|"<<
+        "\n   Opened Tiles: \t+ "<<tracker.ScoreOpen<<"\n   Marked Mines: \t+ "<<tracker.ScoreMark<<"\n   False Marks: \t- "<<abs(tracker.FalseMark)<<"\n   Risky Tiles: \t+ "<<tracker.RiskyOpen<<
+        "\n   Lucky Number: \t+ "<<tracker.LuckyNumber<<"\n   No [MARK]: \t\t+ "<<tracker.NoMark<<"\n   NMLB: \t\t+ "<<tracker.NoMineLeftBehind<<"\n   Win: \t\t+ "<<tracker.Completion<<
+        "\n   Total Score:\t\t  "<<tracker.Score<<"\n   Average Multiplier:\t x"<<tracker.AvgMulti;
+    cout<<"\n\nTerminating Code.";
     cin.ignore();
     exit(0);
 
 }
 
-void resume(int grid[][30],int hidden[][30],string shown[][31],int x, int y,string state,int limit1,int limit2,int diff,stats tracker){ //CHECK IF THIS FUNCTION IS REALLY NECESSARY!
-    int z,a,b,v,w=0,r=0,m=1,n;
+void resume(int grid[][30],int hidden[][30],string shown[][31],int x, int y,string state,int limit1,int limit2,int diff,stats tracker,int multi){ //CHECK IF THIS FUNCTION IS REALLY NECESSARY!
+    int z,a,b,v,w=0,r=0,m=1,n,risk = 0,nmlb=0;
     tracker.Turns++;
+    cout<<endl<<"_______________________________________________________________________________________________________\n";
     if(state=="[OPEN]"){
         tracker.Opens++;
+        if(multi>=0&&multi<2){ //MULTIPLIER SYSTEMS
+            tracker.ScoreOpen += 10;
+            tracker.MultiTotal += 1.0;
+        }
+        else if(multi>=2&&multi<4){
+            tracker.ScoreOpen += 10 * 2;
+            tracker.MultiTotal += 2.0;
+        }
+        else if(multi>=4&&multi<6){
+            tracker.ScoreOpen += 10 * 4;
+            tracker.MultiTotal += 4.0;
+        }
+        else if(multi>=6&&multi<8){
+            tracker.ScoreOpen += 10 * 8;
+            tracker.MultiTotal += 8.0;
+        }
+        else if(multi>=8){
+            tracker.ScoreOpen += 10 * 16;
+            tracker.MultiTotal += 16.0;
+        }
+        for(int t1 = (x - 1);t1 <= (x+1);t1++) { // Special Open Condition: Risky Open.
+            for (int t2 = (y - 1); t2 <= (y + 1); t2++) {
+                if(t1==x&&t2==y){
+                    //IGNORE
+                }
+                else{
+                    if(hidden[t2][t1]==0){
+                        risk++;
+                    }
+                }
+            }
+        }
+        if(risk==8){
+            if(multi>=0&&multi<2){ //MULTIPLIER SYSTEMS
+                tracker.RiskyOpen += 50;
+            }
+            else if(multi>=2&&multi<4){
+                tracker.RiskyOpen += 50 * 2;
+            }
+            else if(multi>=4&&multi<6){
+                tracker.RiskyOpen += 50 * 4;
+            }
+            else if(multi>=6&&multi<8){
+                tracker.RiskyOpen += 50 * 8;
+            }
+            else if(multi>=8){
+                tracker.RiskyOpen += 50 * 16;
+            }
+        }
+        multi++;
+        if(grid[y][x]==8){ //Extremely Unlikely Find. Special Open Condition: Lucky Number.
+            tracker.LuckyNumber += 5000;
+        }
     }
     else if(state=="[MARK]"){
         tracker.Marks++;
+        if(grid[y][x]==99&&hidden[y][x]==2){
+            tracker.Score += 100;
+            tracker.ScoreMark += 100;
+        }
+        else if(grid[y][x]!=99&&hidden[y][x]==2){ //Very hard to do so it is costly.
+            tracker.Score -= 500;
+            tracker.FalseMark -= 500;
+        }
     }
     if(grid[y][x]==99&&hidden[y][x]==1){ //LOSE CHECK
         view(shown,limit1,limit2,diff);
+        tracker.NoMark = 0;
         lose(tracker);
     }
-    for (a = 0; a < limit1 + 1; a++) {
+    for (a = 0; a < limit1 + 1; a++) { //REVEALED TILE TRACKER + Special Win Condition: No Mine Left Behind
         for (b = 0; b < limit2 + 1; b++) {
             if(grid[a][b]!=99&&hidden[a][b]==1){
                 w++;
             }
+            if(grid[a][b]==99&&hidden[a][b]==2){
+                nmlb++;
+            }
         }
     }
-    if(diff==1){
+    if(diff==1){ //VARIABLE DIFFICULTY WIN CHECK : EASY
         if(w==54){
+            if(nmlb==10){
+                tracker.NoMineLeftBehind = 1000;
+            }
+            tracker.Completion = 1000;
             view(shown,limit1,limit2,diff);
             win(tracker); //REQUIRES ALL TILES TO BE OPENED, EXCLUDING MINES. (8x8 = 64; 64 - 10 = 54)
         }
     }
-    else if(diff==2){
+    else if(diff==2){ // MEDIUM (Normally Hard)
         if(w==216){
+            if(nmlb==40){
+                tracker.NoMineLeftBehind = 3500;
+            }
+            if(tracker.NoMark==1){
+                tracker.NoMark = 3500;
+            }
+            tracker.Completion = 3500;
             view(shown,limit1,limit2,diff);
             win(tracker); //REQUIRES ALL TILES TO BE OPENED, EXCLUDING MINES. (16x16 = 256; 256 - 40 = 216)
         }
     }
-    else if(diff==3){
+    else if(diff==3){ // HARD (Normally Expert)
         if(w==381){
+            if(nmlb==99){
+                tracker.NoMineLeftBehind = 7000;
+            }
+            if(tracker.NoMark==1){
+                tracker.NoMark = 7000;
+            }
+            tracker.Completion = 7000;
             view(shown,limit1,limit2,diff);
             win(tracker); //REQUIRES ALL TILES TO BE OPENED, EXCLUDING MINES. (30x16 = 480; 480 - 99 = 381)
         }
     }
-    for(n=1;n>0;){
+    for(n=1;n>0;){ //SELECTION FOR USER TO SWITCH CURRENT MODE
         if(r==1){
             for(z=1;z>0;){
                 cout<<"Please select a selection mode.\n(1) OPEN\n(2) MARK";
                 cin>>v;
                 switch(v){
-                    case(1):state="[OPEN]";r=0;m=1;break;
-                    case(2):state="[MARK]";r=0;m=1;break;
+                    case(1):state="[OPEN]";r=0;m=1;multi=0;break;
+                    case(2):state="[MARK]";r=0;m=1;multi=0;tracker.NoMark=0;break;
                     default:state="[NULL]";break;
                 }
                 if(state=="[NULL]"){
@@ -160,7 +270,7 @@ void resume(int grid[][30],int hidden[][30],string shown[][31],int x, int y,stri
         cout<<"You are currently in "<<state<<" Mode.";
         view(shown,limit1,limit2,diff);
         cout<<"\n\nWhat tile would you like to "<<state<<"?";
-        for(z=1;z>0;){
+        for(z=1;z>0;){ //SELECTING COORDINATE X
             cout<<"\nX: ";cin>>x;
             if(x<0){
                 r=1;m=0;z=0;
@@ -179,7 +289,7 @@ void resume(int grid[][30],int hidden[][30],string shown[][31],int x, int y,stri
                 z=0;
             }
         }
-        if(m==1){
+        if(m==1){ //SELECTING COORDINATE Y
             for(z=1;z>0;){
                 cout<<"\nY: ";cin>>y;
                 if(diff==1&&y>8){
@@ -253,15 +363,18 @@ void resume(int grid[][30],int hidden[][30],string shown[][31],int x, int y,stri
             else if(hidden[a][b]==2){
                 shown[a+1][b+1]="!";
             }
+            else if(hidden[a][b]==0){
+                shown[a+1][b+1]="_";
+            }
         }
     }
-    resume(grid,hidden,shown,x,y,state,limit1,limit2,diff,tracker); // This is the looping version
+    resume(grid,hidden,shown,x,y,state,limit1,limit2,diff,tracker,multi); // This is the looping version
 
 }
 void playing(int grid[][30],int hidden[][30],string shown[][31],int limit1,int limit2,int diff,stats tracker){ //This is the ini for the game
-    int x,y,v,z,a,b,n=0,w=0,r=1,m=1,i=1;
+    int x,y,v,z,a,b,n=0,w=0,r=1,m=1,i=1,multi = 0;
     string state;
-
+    cout<<endl<<"_______________________________________________________________________________________________________\n";
 
     for(n=1;n>0;){
         if(r==1){
@@ -270,7 +383,7 @@ void playing(int grid[][30],int hidden[][30],string shown[][31],int limit1,int l
                 cin>>v;
                 switch(v){
                     case(1):state="[OPEN]";r=0;m=1;break;
-                    case(2):state="[MARK]";r=0;m=1;break;
+                    case(2):state="[MARK]";r=0;m=1;tracker.NoMark=0;break;
                     default:state="[NULL]";break;
                 }
                 if(state=="[NULL]"){
@@ -378,7 +491,7 @@ void playing(int grid[][30],int hidden[][30],string shown[][31],int limit1,int l
         }
     }
 
-    resume(grid,hidden,shown,x,y,state,limit1,limit2,diff,tracker); // This is the looping version
+    resume(grid,hidden,shown,x,y,state,limit1,limit2,diff,tracker,multi); // This is the looping version
 }
 
 
@@ -469,25 +582,6 @@ int Begin(int diff,int numb,stats tracker,int debug) {
 //EASY 8x8, 10 MINES / HARD 16x16, 40 MINES / EXPERT 30x16, 99 MINES. YOU DO NOT HAVE TO
 //CHANGE THE SIZE OF THE GRID JUST THE FUNCTION THAT PRINTS IT. ALL NON INCLUDED ARRAY VALUES
 //WILL BE ZERO AND UNDISPLAYED. IT WILL ALWAYS BE THE SIZE OF THE LARGEST BOARD
-    /*for (a = 0; a < 17; a++) { //CHANGED: CODE MADE TO FIT 16x30 Grid
-        for (b = 0; b < 31; b++) {
-            if (a == 0 && b == 0) {
-                cout << "Current Grid:\n";
-            }
-            if (b == 0 && a < 10) {
-                cout << " " << shown[a][b] << " ";
-            } else {
-                cout << " " << shown[a][b];
-            }
-            if (a != 0 && b >= 10) {
-                cout << " "; //Makes the ? align with the coord numbers
-            }
-            cout << " ";
-            if (b == 30) {
-                cout << "\n";
-            }
-        }
-    }*/
     for (;;) {
 
         if (diff == 1) {
@@ -510,7 +604,8 @@ int Begin(int diff,int numb,stats tracker,int debug) {
         }
     }
 //START TESTING
-    cout << "Pick a starting point: (FORMAT: '[x,y]')\n";
+    cout<<endl<<"_______________________________________________________________________________________________________\n";
+    cout << "Pick a starting point:\n";
     int x, y;
     for (;;) {
         cout << "x: ";
@@ -519,23 +614,26 @@ int Begin(int diff,int numb,stats tracker,int debug) {
         cin >> y;
         grid[y - 1][x - 1] = -1;
         if (x > 8 && diff == 1) { //All these ifs check if the start is within range of given diff.
-            cout << "\nx is out of range... Use x values 0 to 8";
+            cout << "\nx is out of range... Use x values 0 to 8\n";
         }
-        if (y > 8 && diff == 1) {
-            cout << "\ny is out of range... Use y values 0 to 8";
+        else if (y > 8 && diff == 1) {
+            cout << "\ny is out of range... Use y values 0 to 8\n";
         }
-        if (x > 16 && (diff == 1 || diff == 1)) { //Both Hard and Expert use 16 columns.
-            cout << "\nx is out of range... Use x values 0 to 16";
+        else if (x > 16 && diff == 2) { //Both Hard and Expert use 16 columns.
+            cout << "\nx is out of range... Use x values 0 to 16\n";
         }
-        if (y > 30 && diff == 1) {
-            cout << "\ny is out of range... Use y values 0 to 30";
+        else if (y > 16 && (diff == 2 || diff == 3)) {
+            cout << "\ny is out of range... Use y values 0 to 16\n";
         }
-        if (y > 30 && diff == 1) {
-            cout << "\ny is out of range... Use y values 0 to 30";
+        else if (x > 30 && diff == 3){
+            cout << "\nx is out of range... Use x values 0 to 30\n";
         }
-        break; //tests if the values are integers.
+        else{
+            break; //tests if the values are integers.
+        }
     }
     if(debug==1){
+        cout<<endl<<"_______________________________________________________________________________________________________\n";
         for (a = 0; a < limit1 + 1; a++) { //[DEBUG ONLY] COMMENT OUT THIS FUNCTION FOR ACTUAL USE!
             for (b = 0; b < limit2 + 1; b++) {
                 if (a == 0 && b == 0) {
@@ -728,6 +826,7 @@ int Begin(int diff,int numb,stats tracker,int debug) {
 //END OF INI CODE --------------------------------------------------------------------------------------------------
 //[DEBUG ONLY] COMMENT OUT THIS FUNCTION FOR ACTUAL USE! -----------------------------------------------------------
     if(debug==1){
+        cout<<endl<<"_______________________________________________________________________________________________________\n";
         for (a = 0; a < limit1 + 1; a++) {
             for (b = 0; b < limit2 + 1; b++) {
                 if (a == 0 && b == 0) {
@@ -764,6 +863,7 @@ int Begin(int diff,int numb,stats tracker,int debug) {
 */
 //new scanning function:
     if(debug==1){
+        cout<<endl<<"_______________________________________________________________________________________________________\n";
         cout<<"Total Scans:\n";
     }
     scan(grid,hidden,x,y,limit2,limit1,tracker,debug);
@@ -894,14 +994,13 @@ hidden[(y - 1) - i][(x - 1) - u] = 1; //ANYTHING IN 8 TILE PROXIMITY WILL BE REV
     }
 //FLEXIBLE SHOWN ARRAY GENERATOR -----------------------------------------------------------------------------------
     playing(grid,hidden,shown,limit1,limit2,diff,tracker);
-//---------------------------------------------END OF CODE----------------------------------------------------------
 }
 
 void Menu(stats tracker){
     Menu:
     int diff,m,debug=0,h;
     cout<<endl<<"_______________________________________________________________________________________________________"<<endl
-        <<"First, start by selecting the difficulty"<<endl<<"(1) Easy"<<endl<<"(2) Medium"<<endl<<"(3) Hard"<<endl
+        <<"First, start by selecting the difficulty"<<endl<<"(1) Easy\t [ 8 x  8]"<<endl<<"(2) Medium\t [16 x 16]"<<endl<<"(3) Hard\t [30 x 16]"<<endl
         <<"Please type in the corresponding number for the difficulty you would like to play in."<<endl<<
         "We suggest that you start with easy if you are a beginner."<<endl;
     cin>>diff;
@@ -912,6 +1011,7 @@ void Menu(stats tracker){
         case 3:m = 99;
     }
     if(debug==0){
+        cout<<endl<<"_______________________________________________________________________________________________________\n";
         cout<<"Would you like to active debug mode? (Use only to observe the inner workings of the game. Cheating is not fun.)"
               "\n(1) Yes\n(2) No";
         for(h=1;h>0;){
