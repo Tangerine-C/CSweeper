@@ -1,0 +1,2 @@
+*.cpp linguist-detectable=true
+*.cobol linguist-detectable=false
