@@ -1,1 +1,3 @@
+**Please read this first before using!**
+This code was a passion project created for COP 2006 - Programming 1 and updated further for COP 3003 - Programming 2. It may not be updated super frequently, if at all. It was made to run on CLion originally but should work with any IDE that handles C++. It should if properly initialized, work imediately. Please refer to Security.md if any issues occur or anything I may have missed is found in the code. Thank you for viewing this repository.
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Tangerine-C/CSweeper/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Tangerine-C/CSweeper)
