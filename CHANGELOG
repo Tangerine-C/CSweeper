@@ -1,0 +1,33 @@
+CHANGELOG (SINCE V.1.1.2)
+    KEY | 'R' REASONING |
+                                        -----           ADDED           -----
+- Added: Changelog
+- Added: 4 New Headers
+    - Win_Util.h
+        - This contains code that is only usable buy devices running Windows OS and colors some of the outputs for
+          the game.
+    - Comp_Util.h
+        - This contains a more compatible variant of Win_Util.h all should be able to run this version of the output
+          functions.
+    - CSweeper.h
+        - This contains the bulk of the code that used to be contained all in main.cpp
+          (Necessary? Idk, may revert as I don't know if this is the proper use of Header files, but using a Source Code
+          file did not work when I changed it)
+    - debug.h
+        - This contains all the functions that may or may not be used by CSweeper.h
+- Added: "#if _WIN32 || _WIN64" statement to check if the user is using a Windows OS or not to choose the required header
+         and some other misc cases.
+- Added: Function Prototypes in CSweeper.h to better sort the functions.
+
+
+                                        -----           CHANGES         -----
+- Changed: main.cpp no longer contains all the code is has been shifted between all headers.
+        R: Seemed to be a good idea may not be super useful in future.
+- Changed: ordering of the functions as to see the order of use more clearly.
+        R: Felt uncomfortable to find sections of code.
+- Changed: 'Playing' Class with just global variables.
+        R: Just needed to remain static for use.
+- Changed: Headers and Source Files, because we actually figured out how they are supposed to work.
+                                        -----           REMOVED         -----
+- The multiple Scan() loops (what was Scan1 and Scan2)
+- [NOT YET IMPLEMENTED] The removal of the playing() function.
