@@ -192,7 +192,7 @@ void Begin(int diff,int numb,stats tracker,int debug) {
     mt19937 mt(rd()); //THIS IS THE SEED GENERATOR FOR THE RNG, OR KNOWN AS THE "MERSENNE TWISTER ALGORITHM".
     uniform_real_distribution<double> distROW(0, limit2 + 1); //THIS RESTRICTS THE NUMBER RANGE BETWEEN THESE VALUES.
     uniform_real_distribution<double> distCOLUMN(0, limit1 + 1);
-    for (m = m; m > 0; m--) { //CHANGE value of m to change the number of mines!
+    for (; m > 0; m--) { //CHANGE value of m to change the number of mines!
         int r1 = distCOLUMN(mt), r2 = distROW(mt);
         if (grid[r1][r2] != 99) {
             if (grid[r1 - 1][r2 - 1] != -1 && grid[r1 - 1][r2 - 0] != -1 && grid[r1 - 1][r2 - -1] != -1 &&
