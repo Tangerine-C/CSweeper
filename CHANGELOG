@@ -30,4 +30,4 @@ CHANGELOG (SINCE V.1.1.2)
 - Changed: Headers and Source Files, because we actually figured out how they are supposed to work.
                                         -----           REMOVED         -----
 - The multiple Scan() loops (what was Scan1 and Scan2)
-- [NOT YET IMPLEMENTED] The removal of the playing() function.
+- The removal of the playing() function.
