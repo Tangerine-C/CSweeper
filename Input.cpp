@@ -95,5 +95,5 @@ int input_y(int diff){
             }
         }
     }
-
+    return 0;
 }
